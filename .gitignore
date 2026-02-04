@@ -3,6 +3,8 @@
 .env
 *.log
 plans.txt
+test.py
+text.txt
 __pycache__/
 *.pyc
 # created by virtualenv automatically
