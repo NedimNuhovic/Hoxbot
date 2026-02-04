@@ -1,9 +1,9 @@
 CLEARED:
-
-
-TODO:
 1. Push prototype to github (its in the AI chat the last thingy, ill be off for now)
 bbye *yawnnn*)
 2. Create a word detection feature
+
+
+TODO:
 3. Add a database in which you can store the words
 4. Connect it to an AI using the lamma thingy you downloaded.

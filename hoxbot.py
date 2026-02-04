@@ -23,12 +23,25 @@ intents.guilds = True
 
 bot = commands.Bot(command_prefix='hox', intents=intents)
 bot_channel_id = 1466365993981972598
+triggers = {
+    "tits" : "this",
+    "boobs" : "rude",
+    "sex" : "stop!!",
+    "spam" : "spam"
+}
+
 
 @bot.event
 async def on_message(message):
     message_logger.info(f"{message.author}: {message.content}")
-    await bot.process_commands(message)
 
+    if message.author != bot.user:
+        for word, reply in triggers.items():
+            if word in message.content:
+                await message.reply(reply)
+                break
+
+    await bot.process_commands(message)
 
 @bot.event
 async def on_ready():

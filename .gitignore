@@ -1,6 +1,9 @@
 .venv/
 .idea/
 .env
+*.log
+plans.txt
 __pycache__/
-*.pyc# created by virtualenv automatically
+*.pyc
+# created by virtualenv automatically
 
