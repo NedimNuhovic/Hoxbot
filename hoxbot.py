@@ -3,6 +3,7 @@ from discord.ext import commands
 import logging
 import os
 from dotenv import load_dotenv
+import pyodbc
 
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
@@ -30,16 +31,55 @@ triggers = {
     "spam" : "spam"
 }
 
+def get_response_for_text(text: str):
+    conn = pyodbc.connect(
+        "DRIVER={ODBC Driver 17 for SQL Server};"
+        "SERVER=.\\SQLEXPRESS;"
+        "DATABASE=hox_db;"
+        "Trusted_Connection=yes;"
+        "Encrypt=yes;"
+        "TrustServerCertificate=yes;"
+    )
+
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT [trigger_word], [response]
+        FROM dbo.response_table    
+    """)
+
+    text = text.lower()
+
+    for trigger_word, response_word in cur.fetchall():
+        if trigger_word.lower() in text:
+            conn.close()
+            return response_word
+
+    conn.close()
+    return None
 
 @bot.event
 async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    try:
+        reply_db = get_response_for_text(message.content)
+    except Exception as e:
+        print("Db error:", repr(e))
+        reply_db = None
+
+    if reply_db:
+        await message.reply(reply_db)
+        print(f"{reply_db} was found in the database")
+        return
+
     message_logger.info(f"{message.author}: {message.content}")
 
-    if message.author != bot.user:
-        for word, reply in triggers.items():
-            if word in message.content:
-                await message.reply(reply)
-                break
+    for word, reply in triggers.items():
+        if word in message.content:
+            await message.reply(reply)
+            break
 
     await bot.process_commands(message)
 
