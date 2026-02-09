@@ -68,17 +68,13 @@ async def insert_trigger_response(trigger_word, response_word, ctx):
 async def remove_trigger_response(trigger_word, response_word, ctx):
     conn = pyodbc.connect(connection)
     cur = conn.cursor()
-    cur.execute(
-        "SELECT * FROM dbo.response_table WHERE [trigger_word]=?",
-        (trigger_word,)
-    )
 
-    if cur.fetchone():
-        cur.execute(
-            "DELETE FROM dbo.response_table WHERE trigger_word = ? AND response = ?",
-            (trigger_word, response_word)
-        )
-        conn.commit()
+    cur.execute(
+        "DELETE FROM dbo.response_table WHERE trigger_word = ? AND response = ?",
+        (trigger_word, response_word)
+    )
+    conn.commit()
+    if cur.rowcount > 0:
         await ctx.reply("word cleared")
     else:
         await ctx.reply("that word isnt found in my memory")
