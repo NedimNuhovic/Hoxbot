@@ -53,26 +53,36 @@ def get_response_for_text(text: str):
     conn.close()
     return None
 
-def insert_trigger_response(trigger_word, response_word):
+async def insert_trigger_response(trigger_word, response_word, ctx):
     conn = pyodbc.connect(connection)
     cur = conn.cursor()
     cur.execute(
     "INSERT INTO dbo.response_table VALUES (?, ?)",
     (trigger_word, response_word)
     )
-
     conn.commit()
     conn.close()
+    await ctx.reply("word added")
     return None
 
-def remove_trigger_response(trigger_word, response_word):
+async def remove_trigger_response(trigger_word, response_word, ctx):
     conn = pyodbc.connect(connection)
     cur = conn.cursor()
     cur.execute(
-        "DELETE FROM dbo.response_table WHERE trigger_word = ? AND response = ?",
-        (trigger_word, response_word)
+        "SELECT * FROM dbo.response_table WHERE [trigger_word]=?",
+        (trigger_word,)
     )
-    conn.commit()
+
+    if cur.fetchone():
+        cur.execute(
+            "DELETE FROM dbo.response_table WHERE trigger_word = ? AND response = ?",
+            (trigger_word, response_word)
+        )
+        conn.commit()
+        await ctx.reply("word cleared")
+    else:
+        await ctx.reply("that word isnt found in my memory")
+    conn.close()
     return None
 
 
@@ -100,13 +110,13 @@ async def on_message(message):
 async def add(ctx):
     trigger_word = "tester"
     response_word = "tested"
-    insert_trigger_response(trigger_word, response_word)
+    await insert_trigger_response(trigger_word, response_word, ctx)
 
 @bot.command()
 async def clear(ctx):
     trigger_word = "tester"
     response_word = "tested"
-    remove_trigger_response(trigger_word, response_word)
+    await remove_trigger_response(trigger_word, response_word, ctx)
 
 @bot.event
 async def on_ready():
