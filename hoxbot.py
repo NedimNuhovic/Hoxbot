@@ -24,15 +24,8 @@ intents.guilds = True
 
 bot = commands.Bot(command_prefix='hox', intents=intents)
 bot_channel_id = 1466365993981972598
-triggers = {
-    "tits" : "this",
-    "boobs" : "rude",
-    "sex" : "stop!!",
-    "spam" : "spam"
-}
-
-def get_response_for_text(text: str):
-    conn = pyodbc.connect(
+dollie_server_id = 1400768510636068887
+connection = (
         "DRIVER={ODBC Driver 17 for SQL Server};"
         "SERVER=.\\SQLEXPRESS;"
         "DATABASE=hox_db;"
@@ -41,8 +34,10 @@ def get_response_for_text(text: str):
         "TrustServerCertificate=yes;"
     )
 
-    cur = conn.cursor()
 
+def get_response_for_text(text: str):
+    conn = pyodbc.connect(connection)
+    cur = conn.cursor()
     cur.execute("""
         SELECT [trigger_word], [response]
         FROM dbo.response_table    
@@ -57,6 +52,29 @@ def get_response_for_text(text: str):
 
     conn.close()
     return None
+
+def insert_trigger_response(trigger_word, response_word):
+    conn = pyodbc.connect(connection)
+    cur = conn.cursor()
+    cur.execute(
+    "INSERT INTO dbo.response_table VALUES (?, ?)",
+    (trigger_word, response_word)
+    )
+
+    conn.commit()
+    conn.close()
+    return None
+
+def remove_trigger_response(trigger_word, response_word):
+    conn = pyodbc.connect(connection)
+    cur = conn.cursor()
+    cur.execute(
+        "DELETE FROM dbo.response_table WHERE trigger_word = ? AND response = ?",
+        (trigger_word, response_word)
+    )
+    conn.commit()
+    return None
+
 
 @bot.event
 async def on_message(message):
@@ -76,15 +94,24 @@ async def on_message(message):
 
     message_logger.info(f"{message.author}: {message.content}")
 
-    for word, reply in triggers.items():
-        if word in message.content:
-            await message.reply(reply)
-            break
-
     await bot.process_commands(message)
+
+@bot.command()
+async def add(ctx):
+    trigger_word = "tester"
+    response_word = "tested"
+    insert_trigger_response(trigger_word, response_word)
+
+@bot.command()
+async def clear(ctx):
+    trigger_word = "tester"
+    response_word = "tested"
+    remove_trigger_response(trigger_word, response_word)
 
 @bot.event
 async def on_ready():
+    # dollie_general = bot.get_channel(dollie_server_id)
+    # await dollie_general.send("yes")
     channel = bot.get_channel(bot_channel_id)
     print(f'Yokai! {bot.user.name} yoroshiku!')
     await channel.send("Yokai!")
@@ -114,7 +141,5 @@ async def nt(ctx):
 async def on_message_delete(message):
     channel = bot.get_channel(bot_channel_id)
     await channel.send(f"{message.author.mention}I saw the cringe you posted")
-
-
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)
