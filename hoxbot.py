@@ -64,13 +64,12 @@ async def insert_trigger_response(trigger_word, response_word, ctx):
     await ctx.reply("word added")
     return None
 
-async def remove_trigger_response(trigger_word, response_word, ctx):
+async def remove_trigger_response(trigger_word, ctx):
     conn = pyodbc.connect(connection)
     cur = conn.cursor()
-
     cur.execute(
-        "DELETE FROM dbo.response_table WHERE trigger_word = ? AND response = ?",
-        (trigger_word, response_word)
+        "DELETE FROM dbo.response_table WHERE trigger_word = ?",
+        trigger_word
     )
     conn.commit()
     if cur.rowcount > 0:
@@ -79,7 +78,6 @@ async def remove_trigger_response(trigger_word, response_word, ctx):
         await ctx.reply("that word isn't found in my memory")
     conn.close()
     return None
-
 
 @bot.event
 async def on_message(message):
@@ -107,19 +105,18 @@ async def on_message(message):
 
 @bot.command()
 async def add(ctx):
-    print("function called")
-    word = ctx.message.content.split(" | ")
-    trigger_word = word[1]
-    response_word = word[2]
-    print(trigger_word)
-    print(f"{trigger_word} -> {response_word}")
+    words = ctx.message.content.split(" | ")
+    trigger_word = words[1]
+    response_word = words[2]
     await insert_trigger_response(trigger_word, response_word, ctx)
 
 @bot.command()
 async def clear(ctx):
-    trigger_word = "tester"
-    response_word = "tested"
-    await remove_trigger_response(trigger_word, response_word, ctx)
+    print("function called")
+    words = ctx.message.content.split(" | ")
+    trigger_word = words[1]
+    print(f"trigger={trigger_word}")
+    await remove_trigger_response(trigger_word, ctx)
 
 @bot.event
 async def on_ready():
