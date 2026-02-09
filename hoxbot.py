@@ -34,7 +34,6 @@ connection = (
         "TrustServerCertificate=yes;"
     )
 
-
 def get_response_for_text(text: str):
     conn = pyodbc.connect(connection)
     cur = conn.cursor()
@@ -77,7 +76,7 @@ async def remove_trigger_response(trigger_word, response_word, ctx):
     if cur.rowcount > 0:
         await ctx.reply("word cleared")
     else:
-        await ctx.reply("that word isnt found in my memory")
+        await ctx.reply("that word isn't found in my memory")
     conn.close()
     return None
 
@@ -85,6 +84,10 @@ async def remove_trigger_response(trigger_word, response_word, ctx):
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
+        return
+
+    if message.content.startswith("hox"):
+        await bot.process_commands(message)
         return
 
     try:
@@ -104,8 +107,12 @@ async def on_message(message):
 
 @bot.command()
 async def add(ctx):
-    trigger_word = "tester"
-    response_word = "tested"
+    print("function called")
+    word = ctx.message.content.split(" | ")
+    trigger_word = word[1]
+    response_word = word[2]
+    print(trigger_word)
+    print(f"{trigger_word} -> {response_word}")
     await insert_trigger_response(trigger_word, response_word, ctx)
 
 @bot.command()
